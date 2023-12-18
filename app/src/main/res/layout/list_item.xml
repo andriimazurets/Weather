@@ -50,7 +50,7 @@
             app:srcCompat="@drawable/ic_launcher_foreground" />
 
         <TextView
-            android:id="@+id/textView3"
+            android:id="@+id/tvTemp"
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:fontFamily="@font/aubrey"
