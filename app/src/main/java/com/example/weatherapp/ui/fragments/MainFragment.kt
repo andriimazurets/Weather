@@ -13,13 +13,16 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContract
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.FragmentActivity
+import androidx.fragment.app.activityViewModels
 import com.android.volley.Request
 import com.android.volley.toolbox.StringRequest
 import com.android.volley.toolbox.Volley
+import com.example.weatherapp.MainViewModel
 import com.example.weatherapp.WeatherModel
 import com.example.weatherapp.adapters.VpAdapter
 import com.example.weatherapp.databinding.FragmentMainBinding
 import com.google.android.material.tabs.TabLayoutMediator
+import com.squareup.picasso.Picasso
 import org.json.JSONObject
 
 class MainFragment : Fragment() {
@@ -33,6 +36,7 @@ class MainFragment : Fragment() {
     )
     private lateinit var pLauncher: ActivityResultLauncher<String>
     private lateinit var binding: FragmentMainBinding
+    private val model: MainViewModel by activityViewModels()
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -45,6 +49,7 @@ class MainFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         checkPermission()
         init()
+        updateCurrentCard()
         requestWeatherData("Odesa")
     }
 
@@ -89,7 +94,18 @@ class MainFragment : Fragment() {
         )
         queue.add(request)
     }
+    private fun updateCurrentCard() = with(binding) {
+        model.liveDataCurrent.observe(viewLifecycleOwner) {
+            val maxMinTemp = "${it.maxTemp}°C/${it.minTemp}°C"
+            tvData.text = it.time
+            tvCity.text = it.city
+            tvCurrentTemp.text = it.currentTemp
+            tvCondition.text = it.condition
+            tvMaxMin.text = maxMinTemp
+            Picasso.get().load("https:" + it.imageUrl).into(imWeather)
 
+        }
+    }
     private fun parseWeatherData(result: String) {
         val mainObject = JSONObject(result)
         val list = parseDays(mainObject)
@@ -109,6 +125,7 @@ class MainFragment : Fragment() {
                 .getJSONObject("condition").getString("icon"),
             weatherItem.hours
         )
+        model.liveDataCurrent.value = item
         Log.d("MyLog", "Max: ${item.maxTemp}")
         Log.d("MyLog", "Min: ${item.minTemp}")
         Log.d("MyLog", "Hours: ${item.hours}")
