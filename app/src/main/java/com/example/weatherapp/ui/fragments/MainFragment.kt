@@ -16,9 +16,11 @@ import androidx.fragment.app.FragmentActivity
 import com.android.volley.Request
 import com.android.volley.toolbox.StringRequest
 import com.android.volley.toolbox.Volley
+import com.example.weatherapp.WeatherModel
 import com.example.weatherapp.adapters.VpAdapter
 import com.example.weatherapp.databinding.FragmentMainBinding
 import com.google.android.material.tabs.TabLayoutMediator
+import org.json.JSONObject
 
 class MainFragment : Fragment() {
     private val fList = listOf(
@@ -46,11 +48,10 @@ class MainFragment : Fragment() {
         requestWeatherData("Odesa")
     }
 
-    private fun init() = with(binding){
+    private fun init() = with(binding) {
         val adapter = VpAdapter(activity as FragmentActivity, fList)
         vp.adapter = adapter
-        TabLayoutMediator(tabLayout, vp) {
-            tab, pos ->
+        TabLayoutMediator(tabLayout, vp) { tab, pos ->
             tab.text = tList[pos]
         }.attach()
     }
@@ -62,7 +63,7 @@ class MainFragment : Fragment() {
     }
 
     private fun checkPermission() {
-        if(!isPermissionGranted(Manifest.permission.ACCESS_FINE_LOCATION)) {
+        if (!isPermissionGranted(Manifest.permission.ACCESS_FINE_LOCATION)) {
             permissionListener()
             pLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
         }
@@ -79,17 +80,40 @@ class MainFragment : Fragment() {
         val request = StringRequest(
             Request.Method.GET,
             url,
-            {
-                result ->Log.d("MyLog","Result: $result")
+            { result ->
+                parseWeatherData(result)
             },
-            {
-                error -> Log.d("MyLog","Error: $error")
+            { error ->
+                Log.d("MyLog", "Error: $error")
             }
         )
         queue.add(request)
     }
+
+    private fun parseWeatherData(result: String) {
+        val mainObject = JSONObject(result)
+        val item = WeatherModel(
+            mainObject.getJSONObject("location").getString("name"),
+            mainObject.getJSONObject("current").getString("last_updated"),
+            mainObject.getJSONObject("current")
+                .getJSONObject("condition").getString("text"),
+            mainObject.getJSONObject("current").getString("temp_c"),
+            "",
+            "",
+            mainObject.getJSONObject("current")
+                .getJSONObject("condition").getString("icon"),
+            ""
+        )
+        Log.d("MyLog", "City: ${item.city}")
+        Log.d("MyLog", "Time: ${item.time}")
+        Log.d("MyLog", "Condition: ${item.condition}")
+        Log.d("MyLog", "Temp: ${item.currentTemp}")
+        Log.d("MyLog", "Url: ${item.imageUrl}")
+    }
+
     companion object {
         const val API_KEY = "11c9bd7f53c742ccbf594442231812"
+
         @JvmStatic
         fun newInstance() = MainFragment()
     }
