@@ -126,10 +126,6 @@ class MainFragment : Fragment() {
             weatherItem.hours
         )
         model.liveDataCurrent.value = item
-        Log.d("MyLog", "Max: ${item.maxTemp}")
-        Log.d("MyLog", "Min: ${item.minTemp}")
-        Log.d("MyLog", "Hours: ${item.hours}")
-
     }
 
     private fun parseDays(mainObject: JSONObject): List<WeatherModel> {
